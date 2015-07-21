@@ -8,9 +8,14 @@
 
 #import <UIKit/UIKit.h>
 
-@interface SCImageViewWithIndicator : UIImageView
+
+@interface ALImageViewWithIndicator : UIImageView
+
 
 @property(nonatomic,assign) BOOL isRounded;
+
 -(void) setProgress:(long long) totalBytesRead totalBytesExpectedToRead:(long long) totalBytesExpectedToRead;
+
 -(void) endProgress;
+
 @end

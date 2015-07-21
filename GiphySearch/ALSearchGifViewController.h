@@ -8,8 +8,13 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UIViewController
+@interface ALSearchGifViewController : UIViewController
 
+@property (weak, nonatomic) IBOutlet UICollectionView *collectionView;
+
+@property (weak, nonatomic) IBOutlet UISearchBar *searchBarOutlet;
+
+- (IBAction)cleanAction:(id)sender;
 
 @end
 

@@ -7,7 +7,18 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "FLAnimatedImageView.h"
+#import "ALImageViewWithIndicator.h"
+#import "ALGifItem.h"
 
-@interface ALGifCollectionViewCell : UICollectionViewCell
+
+@interface ALGifCollectionViewCell : UICollectionViewCell <ALGifItemDelegate>
+
+@property (weak, nonatomic) IBOutlet FLAnimatedImageView *imageOutlet;
+
+@property (weak, nonatomic) IBOutlet ALImageViewWithIndicator *progressLoadOutlet;
+
+-(void) fillWhithGif: (ALGifItem*) gifItem;
+
 
 @end

@@ -7,7 +7,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "ALWeatherItem.h"
 #import "AFNetworking.h"
 
 
@@ -16,14 +15,14 @@
 +(ALServerManager*) sharedManager;
 
 
--(void) getCurrentWeather: (NSString*) cityName
-                  OnSuccess: (void(^)(NSDictionary* respondsValue)) success
-                  onFailure: (void(^)(NSError* error, NSInteger statusCode)) failure;
+-(void) searchGifWithParams: (NSDictionary*) params
+                    OnSuccess: (void(^)(NSDictionary* respondsValue)) success
+                    onFailure: (void(^)(NSError* error, NSInteger statusCode)) failure;
 
-
--(void) imageDownload:(NSString*) imageID
-            onSuccess: (void(^)(id imgData))succes
-            onFailure: (void(^)(NSError* error, NSInteger statusCode))failure;
+-(void) fileDownload:(NSString*) url
+    progressDownload: (void(^)(NSUInteger bytesRead, long long totalBytesRead, long long totalBytesExpectedToRead)) progressDownload
+           onSuccess: (void(^)(id imgData))succes
+           onFailure: (void(^)(NSError* error, NSInteger statusCode))failure;
 
 
 @end

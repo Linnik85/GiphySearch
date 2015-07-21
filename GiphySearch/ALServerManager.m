@@ -8,10 +8,14 @@
 
 #import "ALServerManager.h"
 
+NSString * const kGiphyPublicAPIKey = @"dc6zaTOxFJmzC";
+
+
 
 @interface ALServerManager ()
 
 @property (strong, nonatomic) AFHTTPRequestOperationManager* requestOperationManager;
+@property (strong, nonatomic) NSString* baseUrl;
 
 @end
 
@@ -25,7 +29,10 @@
     
     if (self) {
         
+       self.baseUrl = @"http://api.giphy.com/v1/gifs/search";
+        
         self.requestOperationManager = [[AFHTTPRequestOperationManager alloc]init];
+        
     }
     return self;
 }
@@ -45,72 +52,82 @@
 }
 
 
--(void) getCurrentWeather: (NSString*) cityName
-                OnSuccess: (void(^)(NSDictionary* respondsValue)) success
-                onFailure: (void(^)(NSError* error, NSInteger statusCode)) failure{
-    
-    self.requestOperationManager.responseSerializer = [AFJSONResponseSerializer serializer];
-    
-    [self.requestOperationManager GET:[[NSString stringWithFormat:@"http://api.openweathermap.org/data/2.5/weather?q=%@",cityName] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]
-                           parameters:nil
-                              success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                                  
-                                  NSDictionary* weatherDict = [[NSDictionary alloc]initWithDictionary:responseObject];
-                                  
-                                  if (success) {
-                                      success(weatherDict);
-                                  }
-                              }
-                              failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                                  
-                                  if (failure) {
-                                      
-                                      failure(error, operation.response.statusCode);
-                                      
-                                  }
-                              }];
 
+-(void) searchGifWithParams: (NSDictionary*) params
+                    OnSuccess: (void(^)(NSDictionary* respondsValue)) success
+                    onFailure: (void(^)(NSError* error, NSInteger statusCode)) failure{
+    NSMutableDictionary* currentParams = [params mutableCopy];
+    
+    [currentParams setObject:kGiphyPublicAPIKey forKey:@"api_key"];
+    
+    [self.requestOperationManager setRequestSerializer:[AFHTTPRequestSerializer serializer]];
+    
+    [self.requestOperationManager setResponseSerializer:[AFJSONResponseSerializer serializer]];
+    
+    [self.requestOperationManager GET:self.baseUrl
+                            parameters:currentParams
+                               success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                                   
+                                   NSDictionary* respondsDict = [[NSDictionary alloc] initWithDictionary:responseObject];
+                                   
+                                   if (success) {
+                                       success(respondsDict);
+                                  }
+                                   
+                               } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                                   
+                                   NSLog(@"Error: %@", error);
+                                   if (failure) {
+                                       
+                                       failure(error, operation.response.statusCode);
+                                   }
+                               }];
 }
 
 
--(void) imageDownload:(NSString*) imageID
+
+-(void) fileDownload:(NSString*) url
+    progressDownload: (void(^)(NSUInteger bytesRead, long long totalBytesRead, long long totalBytesExpectedToRead)) progressDownload
            onSuccess: (void(^)(id imgData))succes
            onFailure: (void(^)(NSError* error, NSInteger statusCode))failure
 {
- 
+           dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+            
             self.requestOperationManager.responseSerializer = [AFHTTPResponseSerializer serializer];
-    
-    NSString* urlString = [NSString stringWithFormat:@"http://openweathermap.org/img/w/%@.png",imageID];
-    
-            NSURLRequest *request =[NSURLRequest requestWithURL:[NSURL URLWithString:urlString]];
-    
+
+            NSURLRequest *request =[NSURLRequest requestWithURL:[NSURL URLWithString:url]];
+               
             AFHTTPRequestOperation *operation = [self.requestOperationManager HTTPRequestOperationWithRequest:request
                                                                                                       success:^(AFHTTPRequestOperation *operation, id responseObject)
                                                  {
                                                      if (succes)
-                                                         
                                                      {
-                                                         
-                                                        succes(responseObject);
-                                                         
+                                                         dispatch_async(dispatch_get_main_queue(), ^{
+                                                             
+                                                             succes(responseObject);
+                                                         });
                                                      }
                                                  }
                                                                                                       failure:^(AFHTTPRequestOperation *operation, NSError *error)
                                                  {
                                                      if (failure)
                                                      {
-                                                         
                                                          failure(error, operation.response.statusCode);
-                                                         
                                                      }
-    
-                        }
-                                                 
-];
-                [self.requestOperationManager.operationQueue addOperation:operation];
-
+                                                 }];
+            
+            if(progressDownload)
+            {
+                [operation setDownloadProgressBlock:^(NSUInteger bytesRead, long long totalBytesRead, long long totalBytesExpectedToRead)
+                 {
+                     progressDownload(bytesRead, totalBytesRead, totalBytesExpectedToRead);
+                 }];
+            }
+               
+            [self.requestOperationManager.operationQueue addOperation:operation];
+               
+        });
 }
-                                                 
-                                                 
+
                                                  
 @end
